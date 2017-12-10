@@ -1,26 +1,37 @@
 package com.github.tonybaines.s2k
 
 import groovy.json.JsonSlurper
+import org.gradle.api.DefaultTask
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.TaskAction
 
-class DefintionToKotlin {
+class DefinitionToKotlinTask extends DefaultTask {
+    @InputFile File swaggerFile
+    String basePath
+    String pkg
 
-    def generateFrom(path, String basePath = "build/generated/sources", String pkg="foo") {
-        def json = new JsonSlurper().parse(new File(path))
+    @OutputDirectory
+    File getOutputDir() {
+        return project.file("$basePath/${pkg.replace('.', '/')}")
+    }
+
+    @TaskAction
+    def generateKotlinDataClasses() {
+        def json = new JsonSlurper().parse(swaggerFile)
 
         json['definitions'].each { name, definition ->
             def pkgDir = "$basePath/${pkg.replace('.', '/')}"
             def sourceFilePath = "$pkgDir/${name}.kt"
-            println(sourceFilePath)
             def source = new File(sourceFilePath)
-            new File(pkgDir).mkdirs()
+//            new File(pkgDir).mkdirs()
             source.createNewFile()
 
             def sourceCode = new StringBuffer("package $pkg\n\n")
             sourceCode.append("data class $name(\n")
             def props = definition['properties']
             sourceCode.append(props
-                    .collect { pName, pDef -> [pName, pDef['type']] }
-                    .collect { pName, jsonType -> [pName, toKotlin(jsonType)]}
+                    .collect { pName, pDef -> [pName, toKotlin(pDef)] }
                     .collect { pName, kotlinType -> "  val $pName: $kotlinType" }
                     .join(',\n')
             )
@@ -30,11 +41,14 @@ class DefintionToKotlin {
         }
     }
 
-    private def toKotlin(type) {
-        switch (type) {
+    def toKotlin(definition) {
+        switch (definition['type']) {
             case 'string': return 'String'
             case 'boolean': return 'Boolean'
             case 'integer': return 'Int'
+            case 'number': return 'Double'
+            case 'object': return definition['$ref'].split('/').last()
+            case 'array': return "List<${toKotlin(definition['items'])}>"
         }
     }
 }

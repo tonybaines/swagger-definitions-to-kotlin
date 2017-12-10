@@ -10,10 +10,27 @@
           "type": "string"
         },
         "bar": {
-          "type": "integer"
+          "type": "object",
+          "$ref": "/definitions/Bar"
         },
         "baz": {
           "type": "boolean"
+        },
+        "bang": {
+          "type": "number"
+        }
+      }
+    },
+    "Bar": {
+      "properties": {
+        "bar": {
+          "type": "integer"
+        },
+        "cats": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       }
     }
