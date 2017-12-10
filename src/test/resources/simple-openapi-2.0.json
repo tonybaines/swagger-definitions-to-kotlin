@@ -1,0 +1,21 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "1.0.0"
+  },
+  "definitions": {
+    "Foo": {
+      "properties": {
+        "foo": {
+          "type": "string"
+        },
+        "bar": {
+          "type": "integer"
+        },
+        "baz": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}
